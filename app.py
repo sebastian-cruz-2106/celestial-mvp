@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
 from datetime import date
+from boto3 import session, resource
+import os
 
 app = Flask(__name__)
 CORS(app) # This will enable CORS for all routes
@@ -10,6 +12,12 @@ CORS(app) # This will enable CORS for all routes
 USER = 'juansebascruz'
 PASSWORD = '90JsC06&'
 API_URL = 'https://scihub.copernicus.eu/dhus'
+
+#Configure AWS
+S3_BUCKET_NAME = 'celestial.imagery'
+
+#Initialize the S3 resource
+s3 = resource('s3')
 
 @app.route('/')
 def index():
@@ -46,11 +54,27 @@ def fetch_satellite_data():
                          platformname='Sentinel-2',
                          cloudcoverpercentage=(0, 30))
 
-    # For now, just return the product ids. In a real application, you might want to
-    # download the data, process it, and/or store it.
-    product_ids = list(products.keys())
+    # Get product IDs 
+    #Right now we will just download 2 images
+    product_ids = list(products.keys())[:2]
 
-    return jsonify({'product_ids': product_ids})
+    for product_id in product_ids:
+        # Download the image
+        product_info = api.download(product_id)
+        download_path = product_info['path']
+        
+        # Upload to AWS S3
+        s3_object_name = os.path.basename(download_path)
+        s3.Bucket(S3_BUCKET_NAME).upload_file(download_path, s3_object_name)
+        
+        # Append the public S3 URL to the list
+        s3_url = f"https://{S3_BUCKET_NAME}.s3.amazonaws.com/{s3_object_name}"
+        s3_urls.append(s3_url)
+
+        # Optionally, delete the local file after upload to free space
+        os.remove(download_path)
+    
+    return jsonify({'s3_urls': s3_urls})
 
 if __name__ == '__main__':
     app.run(debug=True)

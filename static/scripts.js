@@ -79,15 +79,26 @@ function fetchData() {
         //  band: band
         })
     }).then(response => response.json())
-      .then(data => {
-          // Process and display imagery data here
-          console.log(data); // Log the returned data to the console
-          if (data.product_ids) {
-            alert("Fetched Product IDs: " + data.product_ids.join(", "));
-          }
-      }).catch(error => {
-          console.error("Error fetching imagery:", error);
-      });
+    .then(data => {
+        console.log(data); // Log the returned data to the console
+        if (data.s3_urls && data.s3_urls.length) {
+          // Display the URLs
+          const urlDisplayArea = document.getElementById("urlDisplayArea"); // div created in HTML
+          urlDisplayArea.innerHTML = ""; // Clear previous URLs
+          data.s3_urls.forEach(url => {
+              const anchor = document.createElement("a");
+              anchor.href = url;
+              anchor.target = "_blank";
+              anchor.innerText = url;
+              urlDisplayArea.appendChild(anchor);
+              urlDisplayArea.appendChild(document.createElement("br"));
+          });
+        } else {
+            alert("No imagery found for the given dates and bounding box.");
+        }
+    }).catch(error => {
+        console.error("Error fetching imagery:", error);
+    });
 }
 
 
