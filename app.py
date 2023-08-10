@@ -3,6 +3,7 @@ from flask_cors import CORS
 from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
 from datetime import date
 from boto3 import session, resource
+import logging
 import os
 
 app = Flask(__name__)
@@ -17,6 +18,7 @@ API_URL = 'https://scihub.copernicus.eu/dhus'
 S3_BUCKET_NAME = 'celestial.imagery'
 
 #Initialize the S3 resource
+#logging.basicConfig(level=logging.DEBUG)
 s3 = resource('s3')
 
 @app.route('/')
@@ -25,6 +27,7 @@ def index():
 
 @app.route('/fetch-satellite-data', methods=['POST'])
 def fetch_satellite_data():
+    s3_urls = []
     # Get the bounding box from the POST request
     boundingBox = request.json.get('boundingBox', None)
     startDate = request.json.get('startDate', None)
