@@ -36,7 +36,8 @@ function initializeMap() {
             // here you can get the coordinates of the drawn rectangle
             const coords = layer.toGeoJSON().geometry.coordinates;
             // Do something with the coordinates, e.g., console log them
-            console.log(coords);
+            console.log("Drawn bounding box coordinates:", coords);
+
         }
 
         // Add the drawn layer to the map
@@ -63,6 +64,18 @@ function fetchData() {
     // Get the GeoJSON coordinates directly
     const coords = drawnItems.getLayers()[0].toGeoJSON().geometry.coordinates;
     console.log("Drawn bounding box:", coords);
+    
+    // Log the data sent to the backend 
+    console.log("Data sent to backend:", {
+        startDate: startDate,
+        endDate: endDate,
+        boundingBox: {
+            "type": "Polygon",
+            "coordinates": coords
+        }
+    });
+    
+    
     // Send an AJAX request to the backend
     fetch("/fetch-satellite-data", {
         method: "POST",
