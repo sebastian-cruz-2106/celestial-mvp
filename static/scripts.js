@@ -62,7 +62,7 @@ function fetchData() {
 
     // Get the GeoJSON coordinates directly
     const coords = drawnItems.getLayers()[0].toGeoJSON().geometry.coordinates;
-
+    console.log("Drawn bounding box:", coords);
     // Send an AJAX request to the backend
     fetch("/fetch-satellite-data", {
         method: "POST",
@@ -81,11 +81,11 @@ function fetchData() {
     }).then(response => response.json())
     .then(data => {
         console.log(data); // Log the returned data to the console
-        if (data.s3_urls && data.s3_urls.length) {
+        if (data.urls && data.urls.length) {
           // Display the URLs
           const urlDisplayArea = document.getElementById("urlDisplayArea"); // div created in HTML
           urlDisplayArea.innerHTML = ""; // Clear previous URLs
-          data.s3_urls.forEach(url => {
+          data.urls.forEach(url => {
               const anchor = document.createElement("a");
               anchor.href = url;
               anchor.target = "_blank";
